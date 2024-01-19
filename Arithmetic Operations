@@ -1,0 +1,56 @@
+.section .data
+  num1: .word 0       # Variable to store the first number
+  num2: .word 0       # Variable to store the second number
+  result_add: .word 0  # Variable to store the addition result
+  result_sub: .word 0  # Variable to store the subtraction result
+  result_mul: .word 0  # Variable to store the multiplication result
+  result_div: .word 0  # Variable to store the division result
+
+.section .text
+.global _start
+
+_start:
+  # Input two integer values
+  movl $4, %eax      # System call for reading from standard input
+  movl $5, %ebx      # File descriptor for standard input
+  movl $num1, %ecx   # Address of the first number variable
+  int $0x80          # Call the kernel
+
+  movl $4, %eax      # System call for reading from standard input
+  movl $5, %ebx      # File descriptor for standard input
+  movl $num2, %ecx   # Address of the second number variable
+  int $0x80          # Call the kernel
+
+  # Loop to perform calculations
+  loop_start:
+    # Addition
+    movl num1, %eax   # Load the first number into EAX
+    addl num2, %eax   # Add the second number to EAX
+    movl %eax, result_add  # Store the result in result_add
+
+    # Subtraction
+    movl num1, %eax   # Load the first number into EAX
+    subl num2, %eax   # Subtract the second number from EAX
+    movl %eax, result_sub  # Store the result in result_sub
+
+    # Multiplication
+    movl num1, %eax   # Load the first number into EAX
+    imull num2, %eax  # Multiply EAX by the second number
+    movl %eax, result_mul  # Store the result in result_mul
+
+    # Division
+    movl num1, %eax   # Load the first number into EAX (dividend)
+    movl num2, %ebx   # Load the second number into EBX (divisor)
+    cdq               # Sign-extend EAX into EDX:EAX for division
+    idivl %ebx       # Divide EAX:EDX by EBX, quotient in EAX, remainder in EDX
+    movl %eax, result_div  # Store the quotient (result) in result_div
+
+    # Jump to the beginning of the loop 
+    jmp loop_start
+
+  # Display the results
+
+  # Exit
+  movl $1, %eax      # System call for exiting
+  movl $0, %ebx      # Exit status
+  int $0x80          # Call the kernel
