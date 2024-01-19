@@ -1,0 +1,57 @@
+.section .data
+    prompt: .ascii "Enter an integer: "
+    result: .ascii "The factorial of the input integer is: "
+
+.section .bss
+    input: .space 4
+    output: .space 4
+
+.section .text
+.global _start
+
+_start:
+    # Prompt the user for input
+    movl $4, %eax          # System call for writing to standard output
+    movl $1, %ebx          # File descriptor for standard output
+    movl $prompt, %ecx     # Address of the prompt string
+    movl $strlen(prompt), %edx  # Length of the prompt string
+    int $0x80              # Call the kernel
+
+    # Read the integer from the user
+    movl $3, %eax          # System call for reading from standard input
+    movl $0, %ebx          # File descriptor for standard input
+    movl $input, %ecx      # Address of the input buffer
+    movl $4, %edx          # Size of the input buffer
+    int $0x80              # Call the kernel
+
+    # Calculate the factorial using a loop
+    movl $1, %eax          # Initialize EAX to 1 (factorial result)
+    movl input, %ebx       # Load the input integer into EBX
+
+factorial_loop:
+    cmpl $1, %ebx          # Compare EBX with 1
+    je exit                # Jump to exit if EBX is 1
+    imull %ebx, %eax       # Multiply EAX by EBX (factorial calculation)
+    decl %ebx              # Decrement EBX
+    jmp factorial_loop     # Continue the loop
+
+exit:
+    # Display the result
+    movl %eax, %ebx        # Move the factorial result to EBX for printing
+    movl $4, %eax          # System call for writing to standard output
+    movl $1, %ebx          # File descriptor for standard output
+    movl $result, %ecx     # Address of the result string
+    movl $strlen(result), %edx  # Length of the result string
+    int $0x80              # Call the kernel
+
+    # Display the calculated factorial value
+    movl $4, %eax          # System call for writing to standard output
+    movl $1, %ebx          # File descriptor for standard output
+    movl $output, %ecx     # Address of the output buffer
+    movl $4, %edx          # Size of the output buffer
+    int $0x80              # Call the kernel
+
+    # Exit the program
+    movl $1, %eax          # System call for exiting
+    xorl %ebx, %ebx        # Exit status of 0
+    int $0x80              # Call the kernel
