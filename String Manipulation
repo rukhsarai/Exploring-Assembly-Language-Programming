@@ -1,0 +1,66 @@
+.section .data
+  prompt1: .ascii "Enter the first string: "
+  prompt2: .ascii "Enter the second string: "
+  result1: .ascii "Concatenated string: "
+  result2: .ascii "Length of first string: "
+  result3: .ascii "Length of second string: "
+  result4: .ascii "Strings are equal\n"
+  result5: .ascii "Strings are not equal\n"
+
+.section .bss
+  str1: .space 100
+  str2: .space 100
+  concat: .space 200
+
+.section .text
+.global _start
+
+_start:
+  # Input the first string
+  movl $4, %eax      # System call for writing to standard output
+  movl $1, %ebx      # File descriptor for standard output
+  movl $prompt1, %ecx   # Address of the prompt string
+  int $0x80          # Call the kernel
+  # ... (similar for second string input)
+
+  # Concatenate the strings
+  movl $str1, %esi   # Source string pointer
+  movl $concat, %edi  # Destination string pointer
+  cld                 # Clear direction flag for forward movement
+  concat_loop:       # Loop to copy characters
+    lodsb            # Load a byte from source string
+    stosb            # Store the byte in destination string
+    testb %al, %al    # Check for null terminator
+    jnz concat_loop  # Continue if not null
+  movl $str2, %esi   # Switch to the second string
+  rep movsb          # Copy the remaining bytes of str2
+
+  # Find the length of the first string
+  movl $str1, %edi   # Pointer to the first string
+  movl $0, %ecx      # Counter for length
+  find_length1_loop: # Loop to count characters
+    cmpb $0, (%edi)   # Check for null terminator
+    je length1_found  # Jump if null found
+    inc %ecx          # Increment length counter
+    inc %edi          # Move to the next character
+    jmp find_length1_loop
+
+  # ... (similar for finding length of second string)
+
+  # Compare the strings
+  movl $str1, %esi   # Pointer to the first string
+  movl $str2, %edi   # Pointer to the second string
+  cld                 # Clear direction flag
+  compare_loop:      # Loop to compare characters
+    lodsb            # Load a byte from str1
+    cmpb %al, (%edi)  # Compare with corresponding byte in str2
+    jne not_equal     # Jump if characters are not equal
+    testb %al, %al    # Check for null terminator in both strings
+    jz equal          # Jump if both strings are null-terminated
+    inc %edi          # Move to the next character in str2
+    jmp compare_loop
+
+  # ... (display results for equal or not equal)
+
+  exit:
+    # System call for exiting (code omitted for brevity)
